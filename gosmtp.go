@@ -6,9 +6,20 @@ import (
 	"log"
 	"net"
 	"time"
+
+	"github.com/feakuru/gosmtp/workers"
 )
 
+type WorkerPool interface {
+	Size() int
+	Run()
+	AddTaskSyncTimed(f workers.Func, timeout time.Duration) (interface{}, error)
+}
+
+var wp WorkerPool = workers.NewPool(5)
+
 func main() {
+	wp.Run()
 	log.Fatal(listenTCP())
 }
 
