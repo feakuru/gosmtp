@@ -55,9 +55,9 @@ func handleRequest(conn net.Conn) error {
 	buf := make([]byte, 1024)
 	reqLen, err := conn.Read(buf)
 	for ; err == nil; reqLen, err = conn.Read(buf) {
-		log.Printf("got request of len %d bytes from %s: %q", reqLen, conn.RemoteAddr(), buf[:reqLen])
-		if _, err := conn.Write(dispatchResponse(buf[:reqLen])); err != nil {
-			return fmt.Errorf("can't write to connection: %s", err)
+		log.Printf("Got request of len %d bytes from %s: %q", reqLen, conn.RemoteAddr(), buf[:reqLen])
+		if _, errConn := conn.Write(dispatchResponse(buf[:reqLen])); errConn != nil {
+			return fmt.Errorf("can't write to connection: %s", errConn)
 		}
 	}
 	if err != nil {
