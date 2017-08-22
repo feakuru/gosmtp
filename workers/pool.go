@@ -1,89 +1,45 @@
 package workers
 
-import (
-	"errors"
-	"sync"
-	"time"
-)
+import "fmt"
+import "time"
 
-var (
-	ErrJobTimedOut = errors.New("job request timed out")
-)
-
-type Func func() interface{}
-
-type Task struct {
-	f Func
-
-	wg     sync.WaitGroup
-	result interface{}
+// Here's the worker, of which we'll run several
+// concurrent instances. These workers will receive
+// work on the `jobs` channel and send the corresponding
+// results on `results`. We'll sleep a second per job to
+// simulate an expensive task.
+func worker(id int, jobs <-chan int, results chan<- int, task func()) {
+    for j := range jobs {
+        fmt.Println("worker", id, "started  job", j)
+        task()
+        fmt.Println("worker", id, "finished job", j)
+        results <- j * 2
+    }
 }
 
-type Pool struct {
-	concurrency int
-	tasksChan   chan *Task
-	wg          sync.WaitGroup
-}
+func WorkerPool(workersNumber int, task func ()) {
 
-func (p *Pool) Size() int {
-	return p.concurrency
-}
+    // In order to use our pool of workers we need to send
+    // them work and collect their results. We make 2
+    // channels for this.
+    jobs := make(chan int, workersNumber)
+    results := make(chan int, workersNumber)
 
-func NewPool(concurrency int) *Pool {
-	return &Pool{
-		concurrency: concurrency,
-		tasksChan:   make(chan *Task),
-	}
-}
+    // This starts up 3 workers, initially blocked
+    // because there are no jobs yet.
+    for w := 1; w <= workersNumber; w++ {
+        go worker(w, jobs, results, task)
+    }
 
-func (p *Pool) Run() {
-	for i := 0; i < p.concurrency; i++ {
-		p.wg.Add(1)
-		go p.runWorker()
-	}
-}
+    // Here we send 5 `jobs` and then `close` that
+    // channel to indicate that's all the work we have.
+    for j := 1; j <= workersNumber; j++ {
+        jobs <- j
+    }
+    close(jobs)
 
-func (p *Pool) Stop() {
-	close(p.tasksChan)
-	p.wg.Wait()
-}
-
-func (p *Pool) AddTaskSync(f Func) interface{} {
-	t := Task{
-		f:  f,
-		wg: sync.WaitGroup{},
-	}
-
-	t.wg.Add(1)
-	p.tasksChan <- &t
-	t.wg.Wait()
-
-	return t.result
-}
-
-func (p *Pool) AddTaskSyncTimed(f Func, timeout time.Duration) (interface{}, error) {
-	t := Task{
-		f:  f,
-		wg: sync.WaitGroup{},
-	}
-
-	t.wg.Add(1)
-	select {
-	case p.tasksChan <- &t:
-		break
-	case <-time.After(timeout):
-		return nil, ErrJobTimedOut
-	}
-
-	t.wg.Wait()
-
-	return t.result, nil
-}
-
-func (p *Pool) runWorker() {
-	for t := range p.tasksChan {
-		t.result = t.f()
-		t.wg.Done()
-	}
-	p.wg.Done()
+    // Finally we collect all the results of the work.
+    for a := 1; a <= workersNumber; a++ {
+        <-results
+    }
 }
