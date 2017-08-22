@@ -1,7 +1,6 @@
 package workers
 
 import "fmt"
-import "time"
 
 // Here's the worker, of which we'll run several
 // concurrent instances. These workers will receive

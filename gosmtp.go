@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	WorkerPool(func () {
+	workers.WorkerPool(func () {
 		fmt.Println("Test job")
 	})
 	log.Fatal(listenTCP())
