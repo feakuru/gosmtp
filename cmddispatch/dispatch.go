@@ -7,9 +7,9 @@ import (
 type StoredCommand struct {
     cmd []byte
     arg []byte
-    strdSender string
-    strdRcpts []string
-    strdTxt string
+    StrdSender string
+    StrdRcpts []string
+    StrdTxt string
     err error
 }
 
@@ -18,9 +18,10 @@ type StoredCommand struct {
 // DATA
 func Command(cmd []byte, arg []byte, previousCommand StoredCommand) (StoredCommand, string) {
     var currentCommand StoredCommand
+    currentCommand = previousCommand
     if bytes.Equal(cmd, []byte("MAIL FROM")) {
         if bytes.Equal(previousCommand.cmd, []byte("")) {
-            currentCommand.strdSender = string(arg)
+            currentCommand.StrdSender = string(arg)
             currentCommand.cmd = cmd
             currentCommand.arg = arg
             return currentCommand, "250 OK\r\n"
@@ -29,12 +30,12 @@ func Command(cmd []byte, arg []byte, previousCommand StoredCommand) (StoredComma
         }
     } else if bytes.Equal(cmd, []byte("RCPT TO")) {
         if bytes.Equal(previousCommand.cmd, []byte("MAIL FROM")) || bytes.Equal(previousCommand.cmd, []byte("RCPT TO")) {
-            if (previousCommand.strdRcpts == nil) {
-                currentCommand.strdRcpts = make([]string, 10)
+            if (previousCommand.StrdRcpts == nil) {
+                currentCommand.StrdRcpts = make([]string, 10)
             } else {
-                currentCommand.strdRcpts = previousCommand.strdRcpts
+                currentCommand.StrdRcpts = previousCommand.StrdRcpts
             }
-            currentCommand.strdRcpts = append(currentCommand.strdRcpts, string(arg))
+            currentCommand.StrdRcpts = append(currentCommand.StrdRcpts, string(arg))
             currentCommand.cmd = cmd
             currentCommand.arg = arg
             return currentCommand, "250 OK\r\n"

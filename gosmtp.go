@@ -91,11 +91,30 @@ func handleRequest(conn net.Conn) error {
 	var currentCommand cmddispatch.StoredCommand
 	var msg []byte
 	reqLen, err := conn.Read(buf)
+	dataRead := false
+	data := []byte("")
 	for ; err == nil; reqLen, err = conn.Read(buf) {
 		log.Printf("Got request of len %d bytes from %s: %q", reqLen, conn.RemoteAddr(), buf[:reqLen])
-		msg, currentCommand = dispatchResponse(buf[:reqLen], currentCommand)
-		if _, errConn := conn.Write(msg); errConn != nil {
-			return fmt.Errorf("can't write to connection: %s", errConn)
+		if dataRead {
+			if bytes.Equal(buf[:reqLen], []byte(".\r\n")) {
+				log.Println("\nsender: ", currentCommand.StrdSender, "\nrcpts: ", currentCommand.StrdRcpts, "\ndata: ", string(data))
+				dataRead = false
+				if _, errConn := conn.Write([]byte("200 OK\r\n")); errConn != nil {
+					return fmt.Errorf("can't write to connection: %s", errConn)
+				}
+			}
+			for i := 0; i < reqLen; i++ {
+				data = append(data, buf[i])
+			}
+		} else {
+			msg, currentCommand = dispatchResponse(buf[:reqLen], currentCommand)
+			if strings.Split(string(msg), " ")[0] == "354" {
+				dataRead = true
+			}
+			if _, errConn := conn.Write(msg); errConn != nil {
+				return fmt.Errorf("can't write to connection: %s", errConn)
+			}
+			log.Println("\nsender: ", currentCommand.StrdSender, "\nrcpts: ", currentCommand.StrdRcpts, "\ndata: ", string(data))
 		}
 		buf = make([]byte, 1024)
 	}
