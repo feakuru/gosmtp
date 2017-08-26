@@ -1,4 +1,4 @@
-package main
+package conf-readers
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func readConfig(filename string) map[string]string {
+func ReadYAMLConfig(filename string) map[string]string {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
