@@ -1,0 +1,2 @@
+listen-addr: 0.0.0.0:2525
+workers-number: 10
