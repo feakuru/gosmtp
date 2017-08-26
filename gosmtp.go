@@ -12,7 +12,7 @@ import (
 	"bytes"
 	"github.com/feakuru/gosmtp/confreaders"
 	"github.com/feakuru/gosmtp/cmddispatch"
-	// "github.com/feakuru/gosmtp/mailstorage"
+	"github.com/feakuru/gosmtp/mailstorage"
 	"github.com/feakuru/gosmtp/workers"
 )
 
@@ -30,6 +30,7 @@ func listenTCP() error {
 	flag.StringVar(&confName, "conf", "conf.json", "configuration file name")
 	flag.Parse()
 
+	mailstorage.Init()
 	if _, err := os.Stat(confName); os.IsNotExist(err) {
 		log.Printf("no config found: \"%s\", continuing without it", confName)
 	} else {
@@ -98,6 +99,7 @@ func handleRequest(conn net.Conn) error {
 		if dataRead {
 			if bytes.Equal(buf[:reqLen], []byte(".\r\n")) {
 				log.Println("\nsender: ", currentCommand.StrdSender, "\nrcpts: ", currentCommand.StrdRcpts, "\ndata: ", string(data))
+				mailstorage.PutEmailToDB(currentCommand.StrdSender, currentCommand.StrdRcpts, string(data))
 				dataRead = false
 				if _, errConn := conn.Write([]byte("200 OK\r\n")); errConn != nil {
 					return fmt.Errorf("can't write to connection: %s", errConn)
