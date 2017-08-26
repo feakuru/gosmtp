@@ -20,7 +20,7 @@ func WorkerPool(workersNumber int, task func ()) {
 
     jobs := make(chan int, workersNumber)
     results := make(chan int, workersNumber)
-    defer jobs.close()
+    defer close(jobs)
 
     for w := 1; w <= workersNumber; w++ {
         go worker(w, jobs, results, task)

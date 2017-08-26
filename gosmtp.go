@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 	"time"
-	"github.com/feakuru/gosmtp/conf-readers"
+	"github.com/feakuru/gosmtp/confreaders"
 	"github.com/feakuru/gosmtp/workers"
 )
 
@@ -16,7 +16,9 @@ func main() {
 
 func listenTCP() error {
 	var listenAddr string
+	var workersNum string
 	flag.StringVar(&listenAddr, "listen-addr", "0.0.0.0:25", "address to listen")
+	flag.StringVar(&workersNum, "workers-num", "4", "workers quantity")
 	flag.Parse()
 
 	l, err := net.Listen("tcp", listenAddr)

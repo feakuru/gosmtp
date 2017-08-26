@@ -1,7 +1,6 @@
 package confreaders
 
 import (
-	"fmt"
 	"io/ioutil"
     "strings"
 	"log"
