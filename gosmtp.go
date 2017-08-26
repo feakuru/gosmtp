@@ -88,10 +88,13 @@ func listenTCP() error {
 
 func handleRequest(conn net.Conn) error {
 	buf := make([]byte, 1024)
+	var currentCommand cmddispatch.StoredCommand
+	var msg []byte
 	reqLen, err := conn.Read(buf)
 	for ; err == nil; reqLen, err = conn.Read(buf) {
 		log.Printf("Got request of len %d bytes from %s: %q", reqLen, conn.RemoteAddr(), buf[:reqLen])
-		if _, errConn := conn.Write(dispatchResponse(buf[:reqLen])); errConn != nil {
+		msg, currentCommand = dispatchResponse(buf[:reqLen], currentCommand)
+		if _, errConn := conn.Write(msg); errConn != nil {
 			return fmt.Errorf("can't write to connection: %s", errConn)
 		}
 	}
@@ -101,7 +104,7 @@ func handleRequest(conn net.Conn) error {
 	return nil
 }
 
-func dispatchResponse(command []byte) []byte {
+func dispatchResponse(command []byte, prevCommand cmddispatch.StoredCommand) ([]byte, cmddispatch.StoredCommand) {
 	cmdBytes := bytes.Split(command, []byte(":"))
 	cmd := cmdBytes[0]
 	var arg []byte
@@ -114,6 +117,7 @@ func dispatchResponse(command []byte) []byte {
 	var currentCommand cmddispatch.StoredCommand
 	var msg string
 
-	currentCommand, msg = cmddispatch.Command(cmd, arg, currentCommand)
-	return []byte(msg)
+	currentCommand, msg = cmddispatch.Command(cmd, arg, prevCommand)
+	log.Println(currentCommand)
+	return []byte(msg), currentCommand
 }
