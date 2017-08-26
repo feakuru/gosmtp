@@ -10,6 +10,7 @@ import (
 	"time"
 	"strings"
 	"github.com/feakuru/gosmtp/confreaders"
+	"github.com/feakuru/gosmtp/mailstorage"
 	"github.com/feakuru/gosmtp/workers"
 )
 
