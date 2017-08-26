@@ -9,7 +9,9 @@ import (
 	"os"
 	"time"
 	"strings"
+	"bytes"
 	"github.com/feakuru/gosmtp/confreaders"
+	"github.com/feakuru/gosmtp/cmddispatch"
 	"github.com/feakuru/gosmtp/mailstorage"
 	"github.com/feakuru/gosmtp/workers"
 )
@@ -100,5 +102,18 @@ func handleRequest(conn net.Conn) error {
 }
 
 func dispatchResponse(command []byte) []byte {
-	return []byte("Message received.\n")
+	cmd := bytes.Split(command, ':')
+	var arg []byte
+	if len(cmd) > 1 {
+		arg = cmd[1]
+	} else {
+		arg = []bytes("")
+	}
+	cmd = cmd[0]
+
+	var currentCommand StoredCommand
+	var msg string
+
+	currentCommand, msg = Command(cmd, arg, currentCommand)
+	return []byte(msg)
 }
