@@ -97,6 +97,7 @@ func handleRequest(conn net.Conn) error {
 		if _, errConn := conn.Write(msg); errConn != nil {
 			return fmt.Errorf("can't write to connection: %s", errConn)
 		}
+		buf = make([]byte, 1024)
 	}
 	if err != nil {
 		return fmt.Errorf("can't read data from connection: %s", err)
@@ -105,7 +106,7 @@ func handleRequest(conn net.Conn) error {
 }
 
 func dispatchResponse(command []byte, prevCommand cmddispatch.StoredCommand) ([]byte, cmddispatch.StoredCommand) {
-	cmdBytes := bytes.Split(command, []byte(":"))
+	cmdBytes := bytes.Split(bytes.Trim(command, "\r\n"), []byte(":"))
 	cmd := cmdBytes[0]
 	var arg []byte
 	if len(cmdBytes) > 1 {
@@ -118,6 +119,5 @@ func dispatchResponse(command []byte, prevCommand cmddispatch.StoredCommand) ([]
 	var msg string
 
 	currentCommand, msg = cmddispatch.Command(cmd, arg, prevCommand)
-	log.Println(currentCommand)
 	return []byte(msg), currentCommand
 }
