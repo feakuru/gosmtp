@@ -11,9 +11,6 @@ import (
 )
 
 func main() {
-	workers.WorkerPool(func () {
-		fmt.Println("Test job")
-	})
 	log.Fatal(listenTCP())
 }
 
@@ -35,25 +32,28 @@ func listenTCP() error {
 
 	fmt.Printf("Listening on %q\n", listenAddr)
 
-	for {
-		conn, err := l.Accept()
-		defer conn.Close()
-		log.Printf("Connection from %s...", conn.RemoteAddr())
+	workers.WorkerPool(4, func () {
+		for {
+			conn, err := l.Accept()
+			defer conn.Close()
+			log.Printf("Connection from %s...", conn.RemoteAddr())
 
-		if err != nil {
-			fmt.Printf("Error accepting connection %q: %s", listenAddr, err)
-			time.Sleep(100 * time.Millisecond)
-			continue
-		} else {
-			log.Printf("...successful (%s)", conn.RemoteAddr())
-		}
+			if err != nil {
+				fmt.Printf("Error accepting connection %q: %s", listenAddr, err)
+				time.Sleep(100 * time.Millisecond)
+				continue
+			} else {
+				log.Printf("...successful (%s)", conn.RemoteAddr())
+			}
 
-		if err := handleRequest(conn); err != nil {
-			log.Printf("Stopped handling requests from %s: %s", conn.RemoteAddr(), err)
-			time.Sleep(100 * time.Millisecond)
-			continue
+			if err := handleRequest(conn); err != nil {
+				log.Printf("Stopped handling requests from %s: %s", conn.RemoteAddr(), err)
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
 		}
-	}
+	})
+	return nil
 }
 
 func handleRequest(conn net.Conn) error {
