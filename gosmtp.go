@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"errors"
+	"os"
 	"time"
+	"strings"
 	"github.com/feakuru/gosmtp/confreaders"
 	"github.com/feakuru/gosmtp/workers"
 )
@@ -17,9 +20,31 @@ func main() {
 func listenTCP() error {
 	var listenAddr string
 	var workersNum string
+	var confName string
+	var conf map[string]string
 	flag.StringVar(&listenAddr, "listen-addr", "0.0.0.0:25", "address to listen")
-	flag.StringVar(&workersNum, "workers-num", "4", "workers quantity")
+	flag.StringVar(&workersNum, "workers-number", "4", "workers quantity")
+	flag.StringVar(&confName, "conf", "conf.json", "configuration file name")
 	flag.Parse()
+
+	if _, err := os.Stat(confName); os.IsNotExist(err) {
+		log.Printf("no config found: \"%s\", continuing without it", confName)
+	} else {
+		if strings.Split(confName, ".")[1] == "json" {
+			conf = confreaders.ReadJSONConfig(confName)
+		} else if strings.Split(confName, ".")[1] == "yaml" {
+			conf = confreaders.ReadYAMLConfig(confName)
+		} else {
+			return errors.New("can't read your config")
+		}
+		if val, ok := conf["listen-addr"]; ok {
+			listenAddr = val;
+		}
+		if val, ok := conf["workers-number"]; ok {
+			workersNum = val;
+		}
+	}
+
 
 	l, err := net.Listen("tcp", listenAddr)
 	if err != nil {
