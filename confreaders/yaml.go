@@ -22,7 +22,3 @@ func ReadYAMLConfig(filename string) map[string]string {
     }
 	return content_map
 }
-
-func main() {
-    fmt.Println(ReadYAMLConfig("sample.yaml"))
-}

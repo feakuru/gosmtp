@@ -24,7 +24,3 @@ func ReadJSONConfig(filename string) map[string]string {
     }
 	return content_map
 }
-
-func main() {
-    fmt.Println(ReadJSONConfig("sample.json"))
-}
