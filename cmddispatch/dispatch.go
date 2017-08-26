@@ -40,24 +40,24 @@ func Command(cmd []byte, arg []byte, previousCommand StoredCommand) (StoredComma
             previousCommand.strdSender = string(arg)
             previousCommand.cmd = cmd
             previousCommand.arg = arg
-            return previousCommand, "250 OK"
+            return previousCommand, "250 OK\r\n"
         } else {
-            return previousCommand, "500 Error"
+            return previousCommand, "500 Error\r\n"
         }
     } else if bytes.Equal(cmd, []byte("RCPT TO")) {
         if bytes.Equal(previousCommand.cmd, []byte("MAIL FROM")) || bytes.Equal(previousCommand.cmd, []byte("RCPT TO")) {
             previousCommand.strdRcpts = append(previousCommand.strdRcpts, string(arg))
             previousCommand.cmd = cmd
             previousCommand.arg = arg
-            return previousCommand, "250 OK"
+            return previousCommand, "250 OK\r\n"
         } else {
-            return previousCommand, "500 Error"
+            return previousCommand, "500 Error\r\n"
         }
     } else if bytes.Equal(cmd, []byte("DATA")) {
         previousCommand.cmd = cmd
         previousCommand.arg = arg
-        return previousCommand, "354 Send message content; end with <CRLF>.<CRLF>"
+        return previousCommand, "354 Send message content; end with <CRLF>.<CRLF>\r\n"
     } else {
-        return previousCommand, "500 Unknown command"
+        return previousCommand, "500 Unknown command\r\n"
     }
 }

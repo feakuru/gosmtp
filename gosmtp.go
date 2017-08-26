@@ -12,7 +12,7 @@ import (
 	"bytes"
 	"github.com/feakuru/gosmtp/confreaders"
 	"github.com/feakuru/gosmtp/cmddispatch"
-	"github.com/feakuru/gosmtp/mailstorage"
+	// "github.com/feakuru/gosmtp/mailstorage"
 	"github.com/feakuru/gosmtp/workers"
 )
 
@@ -102,18 +102,18 @@ func handleRequest(conn net.Conn) error {
 }
 
 func dispatchResponse(command []byte) []byte {
-	cmd := bytes.Split(command, ':')
+	cmdBytes := bytes.Split(command, []byte(":"))
+	cmd := cmdBytes[0]
 	var arg []byte
-	if len(cmd) > 1 {
-		arg = cmd[1]
+	if len(cmdBytes) > 1 {
+		arg = cmdBytes[1]
 	} else {
-		arg = []bytes("")
+		arg = []byte("")
 	}
-	cmd = cmd[0]
 
-	var currentCommand StoredCommand
+	var currentCommand cmddispatch.StoredCommand
 	var msg string
 
-	currentCommand, msg = Command(cmd, arg, currentCommand)
+	currentCommand, msg = cmddispatch.Command(cmd, arg, currentCommand)
 	return []byte(msg)
 }
