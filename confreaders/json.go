@@ -26,5 +26,5 @@ func ReadJSONConfig(filename string) map[string]string {
 }
 
 func main() {
-    fmt.Println(readConfig("sample.json"))
+    fmt.Println(ReadJSONConfig("sample.json"))
 }

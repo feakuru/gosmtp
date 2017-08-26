@@ -24,5 +24,5 @@ func ReadYAMLConfig(filename string) map[string]string {
 }
 
 func main() {
-    fmt.Println(readConfig("sample.yaml"))
+    fmt.Println(ReadYAMLConfig("sample.yaml"))
 }
